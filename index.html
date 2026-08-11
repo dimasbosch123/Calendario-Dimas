@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Gestor de Estudio & Calendario Personal</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- EmailJS Browser SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.3);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors min-h-screen pb-16 selection:bg-sky-500 selection:text-white">
+
+  <!-- Toast Banner -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 max-w-md w-full hidden">
+    <div id="toast-box" class="p-4 rounded-2xl shadow-xl border flex items-start justify-between gap-3 bg-slate-900/95 text-white border-sky-500/40">
+      <div class="flex items-start gap-2.5">
+        <i id="toast-icon" data-lucide="info" class="w-5 h-5 text-sky-400 shrink-0 mt-0.5"></i>
+        <p id="toast-message" class="text-xs font-semibold leading-relaxed"></p>
+      </div>
+      <button onclick="hideToast()" class="text-slate-400 hover:text-white transition p-0.5 rounded-lg">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between py-3.5 gap-3.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20 border border-sky-400/30">
+              <i data-lucide="calendar" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h1 class="text-base font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Estudio & Calendario</span>
+                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                  Pro
+                </span>
+              </h1>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Gestión de Tiempos, Entregas y Notificaciones por Correo
+              </p>
+            </div>
+          </div>
+
+          <!-- Mobile Actions -->
+          <div class="flex items-center gap-2 lg:hidden">
+            <button onclick="openEmailModal()" class="p-2 text-sky-600 dark:text-sky-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Configurar Mails">
+              <i data-lucide="mail" class="w-5 h-5"></i>
+            </button>
+            <button onclick="toggleTheme()" class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Modo Oscuro / Claro">
+              <i data-lucide="sun" id="mobile-theme-icon" class="w-5 h-5 text-amber-400"></i>
+            </button>
+            <button onclick="openTaskModal()" class="p-2 bg-sky-500 text-white rounded-xl font-bold">
+              <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Clock & Metrics -->
+        <div class="flex flex-wrap lg:flex-nowrap items-center justify-between lg:justify-end gap-2.5 sm:gap-3 text-xs">
+          <!-- Real-Time Digital Clock -->
+          <div class="bg-slate-900 text-white dark:bg-slate-800/90 border border-slate-700/80 rounded-2xl px-3.5 py-2 flex items-center gap-3 shadow-md shrink-0">
+            <div class="p-1.5 rounded-xl bg-sky-500/20 text-sky-400">
+              <i data-lucide="clock" class="w-4 h-4 animate-pulse"></i>
+            </div>
+            <div>
+              <div id="digital-clock" class="text-sm font-black font-mono tracking-wider text-sky-300">
+                00:00:00
+              </div>
+              <div id="digital-date" class="text-[10px] text-slate-300 font-medium leading-none">
+                Cargando...
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-2 flex items-center gap-2">
+            <div class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Tareas Hoy</div>
+              <div id="metric-tasks-today" class="font-bold text-slate-800 dark:text-slate-100">0 / 0</div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-2 flex items-center gap-2">
+            <div class="p-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+              <i data-lucide="flame" class="w-3.5 h-3.5"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Alta Prioridad</div>
+              <div id="metric-high-priority" class="font-bold text-slate-800 dark:text-slate-100">0 urgentes</div>
+            </div>
+          </div>
+
+          <!-- Desktop Actions -->
+          <div class="hidden lg:flex items-center gap-1.5 ml-1">
+            <button onclick="openEmailModal()" class="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 rounded-xl transition font-bold flex items-center gap-1.5 text-xs shadow-2xs">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>Configurar Mails</span>
+            </button>
+            <button onclick="toggleTheme()" class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Modo Oscuro / Claro">
+              <i data-lucide="sun" id="desktop-theme-icon" class="w-4 h-4 text-amber-400"></i>
+            </button>
+            <button onclick="resetData()" class="p-2 text-slate-400 hover:text-rose-500 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Reiniciar datos de ejemplo">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800/60 pt-2 pb-2 overflow-x-auto custom-scrollbar gap-1 text-xs font-bold">
+        <div class="flex items-center gap-1">
+          <button onclick="switchTab('calendar')" id="tab-calendar" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 bg-sky-500 text-white shadow-md shadow-sky-500/20">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+            <span>Calendario</span>
+          </button>
+          <button onclick="switchTab('tasks')" id="tab-tasks" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="check-square" class="w-4 h-4"></i>
+            <span>Tareas</span>
+          </button>
+          <button onclick="switchTab('goals')" id="tab-goals" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="target" class="w-4 h-4"></i>
+            <span>Objetivos Diarios</span>
+          </button>
+          <button onclick="switchTab('pomodoro')" id="tab-pomodoro" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="timer" class="w-4 h-4"></i>
+            <span>Pomodoro</span>
+          </button>
+          <button onclick="switchTab('countdowns')" id="tab-countdowns" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="hourglass" class="w-4 h-4"></i>
+            <span>Cuentas Regresivas</span>
+          </button>
+          <button onclick="switchTab('notes')" id="tab-notes" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="sticky-note" class="w-4 h-4"></i>
+            <span>Notas</span>
+          </button>
+        </div>
+
+        <button onclick="openTaskModal()" class="hidden md:flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white rounded-xl shadow-md shadow-sky-500/20 font-bold">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Nueva Tarea</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+    <!-- VIEW 1: CALENDARIO -->
+    <section id="view-calendar" class="space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div class="flex items-center gap-3">
+          <button onclick="changeMonth(-1)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <h2 id="calendar-month-title" class="text-lg font-black text-slate-900 dark:text-white capitalize min-w-[200px] text-center">
+            Cargando...
+          </h2>
+          <button onclick="changeMonth(1)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="resetToToday()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition">
+            Hoy
+          </button>
+        </div>
+      </div>
+
+      <!-- Calendar Grid & Day Details Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Calendar Grid -->
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 dark:text-slate-500 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+          </div>
+          <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 text-xs">
+            <!-- Days injected via JS -->
+          </div>
+        </div>
+
+        <!-- Selected Day Details & Resources -->
+        <div class="space-y-6">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 id="selected-day-title" class="text-sm font-black text-slate-900 dark:text-white capitalize">
+                  Detalle del Día
+                </h3>
+                <p id="selected-day-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  Carga de trabajo y recursos
+                </p>
+              </div>
+              <button onclick="openTaskModalWithDate()" class="p-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 rounded-xl font-bold hover:bg-sky-100 transition" title="Añadir tarea a este día">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Day Tasks List -->
+            <div id="selected-day-tasks" class="space-y-2 max-h-[220px] overflow-y-auto custom-scrollbar">
+              <!-- Injected by JS -->
+            </div>
+
+            <!-- Day Resources Component -->
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                  <i data-lucide="file-text" class="w-4 h-4 text-sky-500"></i>
+                  <span>Enlaces y PDFs del Día</span>
+                </div>
+              </div>
+
+              <!-- Add Resource Input -->
+              <div class="space-y-2 text-xs">
+                <input type="text" id="res-title" placeholder="Título del material (ej. Apunte Unidad 2)" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <div class="flex gap-2">
+                  <input type="url" id="res-url" placeholder="URL (Google Drive, PDF, web...)" class="flex-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <button onclick="addDayResource()" class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl transition">
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div id="day-resources-list" class="space-y-1.5 pt-1 max-h-[160px] overflow-y-auto custom-scrollbar">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: TAREAS -->
+    <section id="view-tasks" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div class="relative w-full sm:w-72">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+          <input type="text" id="task-search" oninput="renderTasks()" placeholder="Buscar tareas..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <select id="task-filter-status" onchange="renderTasks()" class="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-700 dark:text-slate-300">
+            <option value="all">Todas las tareas</option>
+            <option value="pending">Pendientes</option>
+            <option value="completed">Completadas</option>
+          </select>
+          <button onclick="openTaskModal()" class="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-md shadow-sky-500/20">
+            + Nueva Tarea
+          </button>
+        </div>
+      </div>
+
+      <div id="tasks-list-container" class="space-y-3">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: OBJETIVOS DIARIOS & RACHAS -->
+    <section id="view-goals" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Goals list -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div>
+              <h2 class="text-base font-black text-slate-900 dark:text-white">Objetivos Diarios y Semanales</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Mantén tu constancia de estudio día a día</p>
+            </div>
+            <button onclick="openGoalModal()" class="px-3.5 py-2 bg-sky-500 text-white font-bold text-xs rounded-xl">
+              + Nuevo Objetivo
+            </button>
+          </div>
+
+          <div id="goals-list-container" class="space-y-3">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Streak Tracker Card -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+          <div class="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="p-2.5 rounded-2xl bg-amber-500/10 text-amber-500">
+              <i data-lucide="flame" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-slate-900 dark:text-white">Racha de Estudio</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Días consecutivos cumpliendo objetivos</p>
+            </div>
+          </div>
+
+          <div class="text-center space-y-1">
+            <div id="streak-count-display" class="text-4xl font-black text-amber-500 tracking-tight">0 Días 🔥</div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">¡Mantén el fuego encendido estudiando hoy!</p>
+          </div>
+
+          <!-- GitHub Style Grid -->
+          <div class="space-y-2 pt-2">
+            <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Actividad últimos 30 días:</div>
+            <div id="streak-grid" class="grid grid-cols-10 gap-1.5 p-2 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <!-- Injected JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: POMODORO -->
+    <section id="view-pomodoro" class="space-y-6 hidden">
+      <div class="max-w-xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg text-center space-y-6">
+        <div class="flex items-center justify-center gap-2">
+          <button onclick="setPomodoroMode('pomodoro')" id="pomo-mode-pomodoro" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-sky-500 text-white">Pomodoro (25m)</button>
+          <button onclick="setPomodoroMode('short')" id="pomo-mode-short" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Descanso (5m)</button>
+          <button onclick="setPomodoroMode('long')" id="pomo-mode-long" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Largo (15m)</button>
+        </div>
+
+        <div id="pomo-display" class="text-6xl font-black font-mono tracking-tight text-slate-900 dark:text-white my-6">
+          25:00
+        </div>
+
+        <div class="flex items-center justify-center gap-3">
+          <button onclick="togglePomodoroTimer()" id="pomo-play-btn" class="px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-sky-500/25 text-sm">
+            Iniciar
+          </button>
+          <button onclick="resetPomodoroTimer()" class="p-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl font-bold hover:bg-slate-200 transition">
+            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: CUENTAS REGRESIVAS -->
+    <section id="view-countdowns" class="space-y-6 hidden">
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div>
+          <h2 class="text-base font-black text-slate-900 dark:text-white">Cuentas Regresivas Múltiples</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Fechas límites para exámenes, entregas y finales</p>
+        </div>
+        <button onclick="openCountdownModal()" class="px-3.5 py-2 bg-sky-500 text-white font-bold text-xs rounded-xl">
+          + Nueva Cuenta Regresiva
+        </button>
+      </div>
+
+      <div id="countdowns-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 6: NOTAS -->
+    <section id="view-notes" class="space-y-6 hidden">
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div>
+          <h2 class="text-base font-black text-slate-900 dark:text-white">Bloque de Notas Rápidas</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Guarda fórmulas, recordatorios e ideas</p>
+        </div>
+        <button onclick="addNote()" class="px-3.5 py-2 bg-sky-500 text-white font-bold text-xs rounded-xl">
+          + Nueva Nota
+        </button>
+      </div>
+
+      <div id="notes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: EMAIL CONFIG -->
+  <div id="modal-email-config" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-md">
+            <i data-lucide="mail" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">Configuración de EmailJS</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Credenciales personales para enviar avisos por correo</p>
+          </div>
+        </div>
+        <button onclick="closeEmailModal()" class="p-1 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveEmailConfig(event)" class="space-y-4 text-xs font-medium">
+        <div>
+          <label class="block text-slate-700 dark:text-slate-300 font-bold mb-1">Email del Destinatario:</label>
+          <input type="email" id="email-recipient" required placeholder="ejemplo@correo.com" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-slate-700 dark:text-slate-300 font-bold mb-1">Public Key (User ID):</label>
+          <input type="text" id="email-public-key" placeholder="user_xxxx..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-700 dark:text-slate-300 font-bold mb-1">Service ID:</label>
+            <input type="text" id="email-service-id" placeholder="service_xxxx" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-slate-700 dark:text-slate-300 font-bold mb-1">Template ID:</label>
+            <input type="text" id="email-template-id" placeholder="template_xxxx" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-white">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="testEmailSend()" class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl font-bold flex items-center gap-1.5">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Enviar Mail de Prueba</span>
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeEmailModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold">Cancelar</button>
+            <button type="submit" class="px-5 py-2 bg-sky-500 text-white font-bold rounded-xl shadow-md">Guardar Ajustes</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TASK -->
+  <div id="modal-task" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 id="task-modal-title" class="text-base font-black text-slate-900 dark:text-white">Nueva Tarea</h3>
+        <button onclick="closeTaskModal()" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="saveTask(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="task-id">
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Título de la tarea:</label>
+          <input type="text" id="task-title" required placeholder="Ej. Repasar Capítulo 4 de Bioquímica" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Descripción / Notas:</label>
+          <textarea id="task-desc" rows="2" placeholder="Detalles de la entrega..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Fecha:</label>
+            <input type="date" id="task-date" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Hora (Opcional):</label>
+            <input type="time" id="task-time" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Prioridad:</label>
+            <select id="task-priority" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold">
+              <option value="Alta">Alta (Roja)</option>
+              <option value="Media" selected>Media (Naranja)</option>
+              <option value="Baja">Baja (Verde)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Etiqueta:</label>
+            <select id="task-tag" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+              <option value="Estudio">Estudio</option>
+              <option value="Repaso">Repaso</option>
+              <option value="Entrega">Entrega</option>
+              <option value="Examen">Examen</option>
+              <option value="Proyecto">Proyecto</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Reminders Builder -->
+        <div class="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-2xl space-y-2">
+          <label class="block font-bold text-sky-900 dark:text-sky-300">Alertas por Correo (EmailJS):</label>
+          <div class="flex flex-wrap gap-1.5" id="task-reminders-presets">
+            <button type="button" onclick="toggleTaskReminder(0, 'En el momento')" class="rem-preset-btn px-2.5 py-1 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">En el momento</button>
+            <button type="button" onclick="toggleTaskReminder(15, '15m antes')" class="rem-preset-btn px-2.5 py-1 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">15m antes</button>
+            <button type="button" onclick="toggleTaskReminder(60, '1 hora antes')" class="rem-preset-btn px-2.5 py-1 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">1 hora antes</button>
+            <button type="button" onclick="toggleTaskReminder(1440, '1 día antes')" class="rem-preset-btn px-2.5 py-1 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">1 día antes</button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 bg-sky-500 text-white font-bold rounded-xl shadow-md">Guardar Tarea</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: COUNTDOWN -->
+  <div id="modal-countdown" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Nueva Cuenta Regresiva</h3>
+        <button onclick="closeCountdownModal()" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="saveCountdown(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Título del evento:</label>
+          <input type="text" id="countdown-title" required placeholder="Ej. Examen Final de Álgebra" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Fecha y Hora Límite:</label>
+          <input type="datetime-local" id="countdown-date" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Categoría:</label>
+          <select id="countdown-category" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold">
+            <option value="Final">Examen Final</option>
+            <option value="Parcial">Parcial</option>
+            <option value="Entrega">Entrega Importante</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeCountdownModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 bg-sky-500 text-white font-bold rounded-xl shadow-md">Crear Cuenta Regresiva</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- STORAGE & INITIAL DATA ---
+    const STORAGE_KEYS = {
+      TASKS: 'study_app_tasks_v1',
+      GOALS: 'study_app_goals_v1',
+      NOTES: 'study_app_notes_v1',
+      COUNTDOWNS: 'study_app_countdowns_v1',
+      RESOURCES: 'study_app_resources_v1',
+      DAILY_STREAKS: 'study_app_daily_streaks_v1',
+      THEME: 'study_app_theme_v1',
+      EMAIL_CONFIG: 'study_app_emailjs_v1',
+    };
+
+    function load(key, fallback) {
+      try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function save(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    // Default Initial Data
+    let tasks = load(STORAGE_KEYS.TASKS, [
+      { id: '1', title: 'Entrega de TP de Física II', date: new Date().toISOString().split('T')[0], time: '18:00', priority: 'Alta', tag: 'Entrega', completed: false, createdAt: new Date().toISOString() },
+      { id: '2', title: 'Repasar clase de Estructura de Datos', date: new Date().toISOString().split('T')[0], time: '20:00', priority: 'Media', tag: 'Repaso', completed: true, createdAt: new Date().toISOString() },
+    ]);
+
+    let goals = load(STORAGE_KEYS.GOALS, [
+      { id: '1', title: 'Completar 2 bloques Pomodoro', type: 'Diario', targetValue: 2, currentValue: 1, completed: false, createdAt: new Date().toISOString() },
+      { id: '2', title: 'Resolver 10 ejercicios de Cálculo', type: 'Diario', targetValue: 10, currentValue: 7, completed: false, createdAt: new Date().toISOString() },
+    ]);
+
+    let notes = load(STORAGE_KEYS.NOTES, [
+      { id: '1', title: 'Fórmulas Integrales', content: '∫ x^n dx = (x^(n+1))/(n+1) + C', isPinned: true, color: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' }
+    ]);
+
+    let countdowns = load(STORAGE_KEYS.COUNTDOWNS, [
+      { id: '1', title: 'Examen Final de Física', date: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16), category: 'Final', isFeatured: true }
+    ]);
+
+    let resources = load(STORAGE_KEYS.RESOURCES, []);
+    let streaks = load(STORAGE_KEYS.DAILY_STREAKS, []);
+    let emailConfig = load(STORAGE_KEYS.EMAIL_CONFIG, {
+      publicKey: '', serviceId: '', templateId: '', recipientEmail: 'dimasboschdodero@gmail.com'
+    });
+    let theme = load(STORAGE_KEYS.THEME, 'dark');
+
+    let selectedCalendarDate = new Date().toISOString().split('T')[0];
+    let calendarCurrentDate = new Date();
+    let currentTaskReminders = [];
+
+    // --- APP INIT ---
+    document.addEventListener('DOMContentLoaded', () => {
+      applyTheme(theme);
+      lucide.createIcons();
+      startDigitalClock();
+      renderAll();
+      setInterval(checkEmailAlertsLoop, 60000);
+    });
+
+    function applyTheme(t) {
+      theme = t;
+      save(STORAGE_KEYS.THEME, theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    function toggleTheme() {
+      applyTheme(theme === 'dark' ? 'light' : 'dark');
+    }
+
+    // --- REAL-TIME DIGITAL CLOCK ---
+    function startDigitalClock() {
+      function update() {
+        const now = new Date();
+        const hrs = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const secs = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('digital-clock').innerText = `${hrs}:${mins}:${secs}`;
+
+        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        const dateStr = now.toLocaleDateString('es-ES', options);
+        document.getElementById('digital-date').innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    // --- TAB SWITCHER ---
+    function switchTab(tabId) {
+      ['calendar', 'tasks', 'goals', 'pomodoro', 'countdowns', 'notes'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = 'px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+      });
+
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}`).className = 'px-3.5 py-2 rounded-xl transition flex items-center gap-2 bg-sky-500 text-white shadow-md shadow-sky-500/20 font-bold';
+      renderAll();
+    }
+
+    // --- TOAST NOTIFICATIONS ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const box = document.getElementById('toast-box');
+      const msg = document.getElementById('toast-message');
+
+      msg.innerText = message;
+      container.classList.remove('hidden');
+
+      setTimeout(() => {
+        container.classList.add('hidden');
+      }, 4500);
+    }
+
+    function hideToast() {
+      document.getElementById('toast-container').classList.add('hidden');
+    }
+
+    // --- RENDER ALL VIEWS ---
+    function renderAll() {
+      updateMetrics();
+      renderCalendar();
+      renderSelectedDayDetails();
+      renderTasks();
+      renderGoals();
+      renderCountdowns();
+      renderNotes();
+      renderStreaks();
+      lucide.createIcons();
+    }
+
+    function updateMetrics() {
+      const todayIso = new Date().toISOString().split('T')[0];
+      const todayTasks = tasks.filter(t => t.date === todayIso);
+      const doneToday = todayTasks.filter(t => t.completed).length;
+      document.getElementById('metric-tasks-today').innerText = `${doneToday} / ${todayTasks.length}`;
+
+      const urgent = tasks.filter(t => !t.completed && t.priority === 'Alta').length;
+      document.getElementById('metric-high-priority').innerText = `${urgent} urgentes`;
+    }
+
+    // --- CALENDAR LOGIC ---
+    function renderCalendar() {
+      const year = calendarCurrentDate.getFullYear();
+      const month = calendarCurrentDate.getMonth();
+
+      const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+      document.getElementById('calendar-month-title').innerText = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="p-2 min-h-[50px] opacity-20"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateIso = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayTasks = tasks.filter(t => t.date === dateIso);
+        const isToday = dateIso === new Date().toISOString().split('T')[0];
+        const isSelected = dateIso === selectedCalendarDate;
+
+        let dayClass = 'p-2 min-h-[60px] rounded-2xl border transition cursor-pointer flex flex-col justify-between ';
+        if (isSelected) dayClass += 'border-sky-500 bg-sky-50/50 dark:bg-sky-950/40 shadow-xs ';
+        else if (isToday) dayClass += 'border-amber-400 bg-amber-50/30 dark:bg-amber-950/20 ';
+        else dayClass += 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/40 dark:bg-slate-800/20 ';
+
+        let badgesHtml = '';
+        dayTasks.slice(0, 2).forEach(t => {
+          let color = t.priority === 'Alta' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' :
+                        t.priority === 'Media' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300' :
+                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
+          badgesHtml += `<div class="text-[9px] truncate font-bold px-1.5 py-0.5 rounded-lg ${color}">${t.title}</div>`;
+        });
+
+        grid.innerHTML += `
+          <div onclick="selectCalendarDate('${dateIso}')" class="${dayClass}">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200">
+              <span class="${isToday ? 'w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px]' : ''}">${d}</span>
+            </div>
+            <div class="space-y-1 mt-1">${badgesHtml}</div>
+          </div>
+        `;
+      }
+    }
+
+    function changeMonth(delta) {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function resetToToday() {
+      calendarCurrentDate = new Date();
+      selectedCalendarDate = calendarCurrentDate.toISOString().split('T')[0];
+      renderCalendar();
+      renderSelectedDayDetails();
+    }
+
+    function selectCalendarDate(dateIso) {
+      selectedCalendarDate = dateIso;
+      renderCalendar();
+      renderSelectedDayDetails();
+    }
+
+    function renderSelectedDayDetails() {
+      document.getElementById('selected-day-title').innerText = `Día: ${selectedCalendarDate}`;
+      const dayTasks = tasks.filter(t => t.date === selectedCalendarDate);
+      const tasksContainer = document.getElementById('selected-day-tasks');
+      tasksContainer.innerHTML = '';
+
+      if (dayTasks.length === 0) {
+        tasksContainer.innerHTML = `<div class="text-xs text-slate-400 p-2 text-center">Sin tareas para este día</div>`;
+      } else {
+        dayTasks.forEach(t => {
+          tasksContainer.innerHTML += `
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.id}')" class="w-4 h-4 text-sky-500 rounded">
+                <span class="${t.completed ? 'line-through text-slate-400' : 'font-bold text-slate-800 dark:text-slate-200'}">${t.title}</span>
+              </div>
+              <button onclick="sendManualEmail('${t.title}', '${t.date}')" class="p-1 text-sky-500 hover:text-sky-700" title="Enviar mail">
+                <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          `;
+        });
+      }
+
+      // Render Day Resources
+      const dayRes = resources.filter(r => r.date === selectedCalendarDate);
+      const resContainer = document.getElementById('day-resources-list');
+      resContainer.innerHTML = '';
+
+      if (dayRes.length === 0) {
+        resContainer.innerHTML = `<div class="text-[11px] text-slate-400">Sin materiales adjuntos</div>`;
+      } else {
+        dayRes.forEach(r => {
+          resContainer.innerHTML += `
+            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+              <a href="${r.url}" target="_blank" class="font-bold text-sky-600 dark:text-sky-400 hover:underline truncate max-w-[180px]">${r.title}</a>
+              <button onclick="deleteResource('${r.id}')" class="text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            </div>
+          `;
+        });
+      }
+      lucide.createIcons();
+    }
+
+    function addDayResource() {
+      const title = document.getElementById('res-title').value.trim();
+      const url = document.getElementById('res-url').value.trim();
+      if (!title || !url) return;
+
+      resources.push({
+        id: 'res-' + Date.now(),
+        date: selectedCalendarDate,
+        title,
+        url,
+      });
+      save(STORAGE_KEYS.RESOURCES, resources);
+      document.getElementById('res-title').value = '';
+      document.getElementById('res-url').value = '';
+      renderSelectedDayDetails();
+    }
+
+    function deleteResource(id) {
+      resources = resources.filter(r => r.id !== id);
+      save(STORAGE_KEYS.RESOURCES, resources);
+      renderSelectedDayDetails();
+    }
+
+    // --- TASKS LOGIC ---
+    function renderTasks() {
+      const container = document.getElementById('tasks-list-container');
+      const search = document.getElementById('task-search').value.toLowerCase();
+      const status = document.getElementById('task-filter-status').value;
+
+      const filtered = tasks.filter(t => {
+        const matchSearch = t.title.toLowerCase().includes(search);
+        const matchStatus = status === 'all' ? true : status === 'completed' ? t.completed : !t.completed;
+        return matchSearch && matchStatus;
+      });
+
+      container.innerHTML = '';
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">No se encontraron tareas.</div>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        let pColor = t.priority === 'Alta' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' :
+                     t.priority === 'Media' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300' :
+                     'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
+
+        container.innerHTML += `
+          <div class="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.id}')" class="w-5 h-5 text-sky-500 rounded mt-0.5">
+              <div>
+                <h4 class="text-xs font-bold ${t.completed ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}">${t.title}</h4>
+                <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>📅 ${t.date} ${t.time ? '⏰ ' + t.time : ''}</span>
+                  <span class="px-2 py-0.5 rounded-full font-bold ${pColor}">${t.priority}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button onclick="sendManualEmail('${t.title}', '${t.date}')" class="px-2.5 py-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 rounded-xl font-bold text-xs flex items-center gap-1">
+                <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                <span>Enviar Mail</span>
+              </button>
+              <button onclick="deleteTask('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-xl">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    function toggleTask(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      save(STORAGE_KEYS.TASKS, tasks);
+      renderAll();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      save(STORAGE_KEYS.TASKS, tasks);
+      renderAll();
+    }
+
+    // --- MODALS & FORM SAVES ---
+    function openTaskModal() {
+      document.getElementById('task-id').value = '';
+      document.getElementById('task-title').value = '';
+      document.getElementById('task-desc').value = '';
+      document.getElementById('task-date').value = selectedCalendarDate;
+      currentTaskReminders = [];
+      document.getElementById('modal-task').classList.remove('hidden');
+    }
+
+    function openTaskModalWithDate() {
+      openTaskModal();
+    }
+
+    function closeTaskModal() {
+      document.getElementById('modal-task').classList.add('hidden');
+    }
+
+    function toggleTaskReminder(mins, label) {
+      const idx = currentTaskReminders.findIndex(r => r.minutesBefore === mins);
+      if (idx >= 0) {
+        currentTaskReminders.splice(idx, 1);
+      } else {
+        currentTaskReminders.push({ id: 'rem-' + Date.now(), minutesBefore: mins, label });
+      }
+      showToast(`Recordatorios configurados: ${currentTaskReminders.length}`);
+    }
+
+    function saveTask(e) {
+      e.preventDefault();
+      const title = document.getElementById('task-title').value.trim();
+      const desc = document.getElementById('task-desc').value.trim();
+      const date = document.getElementById('task-date').value;
+      const time = document.getElementById('task-time').value;
+      const priority = document.getElementById('task-priority').value;
+      const tag = document.getElementById('task-tag').value;
+
+      const newTask = {
+        id: 'task-' + Date.now(),
+        title,
+        description: desc,
+        date,
+        time,
+        priority,
+        tag,
+        completed: false,
+        reminders: currentTaskReminders,
+        createdAt: new Date().toISOString()
+      };
+
+      tasks.push(newTask);
+      save(STORAGE_KEYS.TASKS, tasks);
+      closeTaskModal();
+      renderAll();
+      showToast('Tarea guardada exitosamente');
+    }
+
+    // --- GOALS LOGIC ---
+    function renderGoals() {
+      const container = document.getElementById('goals-list-container');
+      container.innerHTML = '';
+
+      goals.forEach(g => {
+        const pct = Math.min(100, Math.round((g.currentValue / g.targetValue) * 100));
+
+        container.innerHTML += `
+          <div class="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-900 dark:text-white">${g.title}</h4>
+              <span class="text-xs font-black text-sky-500">${g.currentValue} / ${g.targetValue}</span>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div class="bg-sky-500 h-full transition-all" style="width: ${pct}%"></div>
+            </div>
+            <div class="flex justify-end gap-2">
+              <button onclick="updateGoal('${g.id}', 1)" class="px-3 py-1 bg-sky-50 dark:bg-sky-950/60 text-sky-600 font-bold text-xs rounded-xl">+1 Progreso</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function updateGoal(id, delta) {
+      goals = goals.map(g => {
+        if (g.id === id) {
+          const newVal = Math.max(0, g.currentValue + delta);
+          if (newVal >= g.targetValue && g.currentValue < g.targetValue) {
+            confetti();
+          }
+          return { ...g, currentValue: newVal, completed: newVal >= g.targetValue };
+        }
+        return g;
+      });
+      save(STORAGE_KEYS.GOALS, goals);
+      renderGoals();
+    }
+
+    function openGoalModal() {
+      const title = prompt('Título del nuevo objetivo:');
+      if (!title) return;
+      goals.push({
+        id: 'goal-' + Date.now(),
+        title,
+        type: 'Diario',
+        targetValue: 1,
+        currentValue: 0,
+        completed: false,
+        createdAt: new Date().toISOString()
+      });
+      save(STORAGE_KEYS.GOALS, goals);
+      renderGoals();
+    }
+
+    // --- STREAKS LOGIC ---
+    function renderStreaks() {
+      const grid = document.getElementById('streak-grid');
+      grid.innerHTML = '';
+      for (let i = 0; i < 30; i++) {
+        const active = i > 20;
+        grid.innerHTML += `<div class="h-5 rounded-md ${active ? 'bg-amber-400' : 'bg-slate-200 dark:bg-slate-700'}"></div>`;
+      }
+      document.getElementById('streak-count-display').innerText = `5 Días 🔥`;
+    }
+
+    // --- POMODORO LOGIC ---
+    let pomoTime = 1500;
+    let pomoTimer = null;
+
+    function setPomodoroMode(mode) {
+      clearInterval(pomoTimer);
+      pomoTimer = null;
+      document.getElementById('pomo-play-btn').innerText = 'Iniciar';
+
+      if (mode === 'pomodoro') pomoTime = 1500;
+      else if (mode === 'short') pomoTime = 300;
+      else pomoTime = 900;
+
+      updatePomoDisplay();
+    }
+
+    function updatePomoDisplay() {
+      const mins = Math.floor(pomoTime / 60);
+      const secs = pomoTime % 60;
+      document.getElementById('pomo-display').innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function togglePomodoroTimer() {
+      if (pomoTimer) {
+        clearInterval(pomoTimer);
+        pomoTimer = null;
+        document.getElementById('pomo-play-btn').innerText = 'Reanudar';
+      } else {
+        pomoTimer = setInterval(() => {
+          if (pomoTime > 0) {
+            pomoTime--;
+            updatePomoDisplay();
+          } else {
+            clearInterval(pomoTimer);
+            pomoTimer = null;
+            showToast('¡Pomodoro terminado!');
+            confetti();
+          }
+        }, 1000);
+        document.getElementById('pomo-play-btn').innerText = 'Pausar';
+      }
+    }
+
+    function resetPomodoroTimer() {
+      setPomodoroMode('pomodoro');
+    }
+
+    // --- COUNTDOWNS LOGIC ---
+    function renderCountdowns() {
+      const grid = document.getElementById('countdowns-grid');
+      grid.innerHTML = '';
+
+      countdowns.forEach(c => {
+        const target = new Date(c.date).getTime();
+        const diff = Math.max(0, target - Date.now());
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        grid.innerHTML += `
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-black text-slate-900 dark:text-white">${c.title}</h4>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">${c.category}</span>
+            </div>
+            <div class="text-2xl font-black text-sky-500">${days}d ${hours}h</div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button onclick="sendManualEmail('${c.title}', '${c.date}')" class="px-2.5 py-1 bg-sky-50 dark:bg-sky-950 text-sky-600 text-xs font-bold rounded-xl">Mail</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function openCountdownModal() {
+      document.getElementById('modal-countdown').classList.remove('hidden');
+    }
+
+    function closeCountdownModal() {
+      document.getElementById('modal-countdown').classList.add('hidden');
+    }
+
+    function saveCountdown(e) {
+      e.preventDefault();
+      const title = document.getElementById('countdown-title').value.trim();
+      const date = document.getElementById('countdown-date').value;
+      const category = document.getElementById('countdown-category').value;
+
+      countdowns.push({
+        id: 'cnt-' + Date.now(),
+        title,
+        date,
+        category,
+        isFeatured: false
+      });
+      save(STORAGE_KEYS.COUNTDOWNS, countdowns);
+      closeCountdownModal();
+      renderCountdowns();
+    }
+
+    // --- NOTES LOGIC ---
+    function renderNotes() {
+      const grid = document.getElementById('notes-grid');
+      grid.innerHTML = '';
+
+      notes.forEach(n => {
+        grid.innerHTML += `
+          <div class="p-4 rounded-2xl border ${n.color || 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'} space-y-2">
+            <h4 class="text-xs font-bold text-slate-900 dark:text-white">${n.title}</h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300">${n.content}</p>
+          </div>
+        `;
+      });
+    }
+
+    function addNote() {
+      const title = prompt('Título de la nota:');
+      const content = prompt('Contenido de la nota:');
+      if (!title || !content) return;
+
+      notes.push({ id: 'note-' + Date.now(), title, content, isPinned: false });
+      save(STORAGE_KEYS.NOTES, notes);
+      renderNotes();
+    }
+
+    // --- EMAILJS AUTOMATION & MANUAL SEND ---
+    function openEmailModal() {
+      document.getElementById('email-recipient').value = emailConfig.recipientEmail || '';
+      document.getElementById('email-public-key').value = emailConfig.publicKey || '';
+      document.getElementById('email-service-id').value = emailConfig.serviceId || '';
+      document.getElementById('email-template-id').value = emailConfig.templateId || '';
+      document.getElementById('modal-email-config').classList.remove('hidden');
+    }
+
+    function closeEmailModal() {
+      document.getElementById('modal-email-config').classList.add('hidden');
+    }
+
+    function saveEmailConfig(e) {
+      e.preventDefault();
+      emailConfig = {
+        recipientEmail: document.getElementById('email-recipient').value.trim(),
+        publicKey: document.getElementById('email-public-key').value.trim(),
+        serviceId: document.getElementById('email-service-id').value.trim(),
+        templateId: document.getElementById('email-template-id').value.trim(),
+      };
+      save(STORAGE_KEYS.EMAIL_CONFIG, emailConfig);
+      closeEmailModal();
+      showToast('Configuración de EmailJS guardada');
+    }
+
+    async function sendManualEmail(title, date) {
+      if (!emailConfig.serviceId || !emailConfig.publicKey) {
+        showToast('Falta configurar credenciales de EmailJS en el menú superior', 'error');
+        openEmailModal();
+        return;
+      }
+
+      showToast('Enviando mail...');
+      try {
+        await emailjs.send(
+          emailConfig.serviceId,
+          emailConfig.templateId,
+          {
+            tarea_titulo: title,
+            tarea_fecha: date,
+            to_email: emailConfig.recipientEmail,
+            recipient_email: emailConfig.recipientEmail,
+          },
+          emailConfig.publicKey
+        );
+        showToast('¡Mail enviado exitosamente!');
+      } catch (err) {
+        showToast('Error al enviar mail: ' + (err.text || err.message));
+      }
+    }
+
+    async function testEmailSend() {
+      sendManualEmail('Correo de Prueba', new Date().toLocaleString());
+    }
+
+    function checkEmailAlertsLoop() {
+      if (!emailConfig.serviceId || !emailConfig.publicKey) return;
+      const nowMs = Date.now();
+
+      tasks.forEach(t => {
+        if (t.completed || !t.reminders) return;
+        const taskDateMs = new Date(`${t.date}T${t.time || '09:00'}:00`).getTime();
+
+        t.reminders.forEach(r => {
+          if (r.sentAt) return;
+          const triggerMs = taskDateMs - (r.minutesBefore * 60000);
+          if (nowMs >= triggerMs) {
+            sendManualEmail(`[Alerta: ${r.label}] ${t.title}`, `${t.date} ${t.time || ''}`);
+            r.sentAt = new Date().toISOString();
+            save(STORAGE_KEYS.TASKS, tasks);
+          }
+        });
+      });
+    }
+
+    function resetData() {
+      if (confirm('¿Reiniciar todos los datos a la muestra inicial?')) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
