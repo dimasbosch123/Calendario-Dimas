@@ -149,11 +149,12 @@
               <i data-lucide="mail" class="w-3.5 h-3.5"></i>
               <span>Configurar Mails</span>
             </button>
+            <button onclick="openBackupModal()" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition font-bold flex items-center gap-1.5 text-xs">
+              <i data-lucide="database" class="w-3.5 h-3.5 text-indigo-500"></i>
+              <span>Copia / Backup</span>
+            </button>
             <button onclick="toggleTheme()" class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Modo Oscuro / Claro">
               <i data-lucide="sun" id="desktop-theme-icon" class="w-4 h-4 text-amber-400"></i>
-            </button>
-            <button onclick="resetData()" class="p-2 text-slate-400 hover:text-rose-500 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Reiniciar datos de ejemplo">
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
             </button>
           </div>
         </div>
@@ -176,11 +177,15 @@
           </button>
           <button onclick="switchTab('pomodoro')" id="tab-pomodoro" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
             <i data-lucide="timer" class="w-4 h-4"></i>
-            <span>Pomodoro</span>
+            <span>Study Timer</span>
           </button>
           <button onclick="switchTab('countdowns')" id="tab-countdowns" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
             <i data-lucide="hourglass" class="w-4 h-4"></i>
             <span>Cuentas Regresivas</span>
+          </button>
+          <button onclick="switchTab('subjects')" id="tab-subjects" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>Materias</span>
           </button>
           <button onclick="switchTab('notes')" id="tab-notes" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
             <i data-lucide="sticky-note" class="w-4 h-4"></i>
@@ -357,48 +362,153 @@
       </div>
     </section>
 
-    <!-- VIEW 4: POMODORO -->
+    <!-- VIEW 4: STUDY TIMER -->
     <section id="view-pomodoro" class="space-y-6 hidden">
-      <div class="max-w-xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg text-center space-y-6">
-        <div class="flex items-center justify-center gap-2">
-          <button onclick="setPomodoroMode('pomodoro')" id="pomo-mode-pomodoro" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-sky-500 text-white">Pomodoro (25m)</button>
-          <button onclick="setPomodoroMode('short')" id="pomo-mode-short" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Descanso (5m)</button>
-          <button onclick="setPomodoroMode('long')" id="pomo-mode-long" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Largo (15m)</button>
+      <div class="max-w-3xl mx-auto space-y-6">
+        <!-- Title Header -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                Study Timer Personalizable
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Ajusta libremente tus bloques de estudio, descanso corto y descanso largo.
+              </p>
+            </div>
+          </div>
+
+          <button onclick="toggleCustomControls()" class="px-3.5 py-2 rounded-2xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition flex items-center gap-2">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+            <span>Configurar Tiempos</span>
+          </button>
         </div>
 
-        <div id="pomo-display" class="text-6xl font-black font-mono tracking-tight text-slate-900 dark:text-white my-6">
-          25:00
+        <!-- Presets & Inputs Bar -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <span class="text-xs font-extrabold uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+              <i data-lucide="settings" class="w-3.5 h-3.5 text-sky-500"></i>
+              Configuraciones Rápida:
+            </span>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="applyPomoPreset(25, 5, 15)" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400">
+                25/5 min (Clásico)
+              </button>
+              <button onclick="applyPomoPreset(50, 10, 20)" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400">
+                50/10 min (Intensivo)
+              </button>
+              <button onclick="applyPomoPreset(45, 15, 30)" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400">
+                45/15 min (Bloque)
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom Numeric Inputs -->
+          <div id="pomo-custom-inputs" class="pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="space-y-1">
+              <label class="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                <i data-lucide="book-open" class="w-3.5 h-3.5 text-sky-500"></i> Estudio (Minutos)
+              </label>
+              <input type="number" id="pomo-work-input" value="25" min="1" max="180" class="w-full px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                <i data-lucide="coffee" class="w-3.5 h-3.5 text-emerald-500"></i> Descanso Corto
+              </label>
+              <input type="number" id="pomo-short-input" value="5" min="1" max="60" class="w-full px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                <i data-lucide="coffee" class="w-3.5 h-3.5 text-purple-500"></i> Descanso Largo
+              </label>
+              <div class="flex gap-2">
+                <input type="number" id="pomo-long-input" value="15" min="1" max="60" class="w-full px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+                <button onclick="saveCustomPomoTimes()" class="px-3.5 py-2 bg-sky-500 text-white font-extrabold text-xs rounded-xl shadow-xs shrink-0">Guardar</button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="flex items-center justify-center gap-3">
-          <button onclick="togglePomodoroTimer()" id="pomo-play-btn" class="px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-sky-500/25 text-sm">
-            Iniciar
-          </button>
-          <button onclick="resetPomodoroTimer()" class="p-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl font-bold hover:bg-slate-200 transition">
-            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-          </button>
+        <!-- Timer Display Card -->
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-center space-y-6">
+          <div class="flex items-center justify-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl max-w-md mx-auto text-xs font-semibold">
+            <button onclick="setPomodoroMode('pomodoro')" id="pomo-mode-pomodoro" class="flex-1 py-2 rounded-xl transition bg-sky-500 text-white font-bold">Sesión</button>
+            <button onclick="setPomodoroMode('short')" id="pomo-mode-short" class="flex-1 py-2 rounded-xl transition text-slate-600 dark:text-slate-400">Descanso Corto</button>
+            <button onclick="setPomodoroMode('long')" id="pomo-mode-long" class="flex-1 py-2 rounded-xl transition text-slate-600 dark:text-slate-400">Descanso Largo</button>
+          </div>
+
+          <div id="pomo-display" class="text-6xl font-black font-mono tracking-tight text-slate-900 dark:text-white my-6">
+            25:00
+          </div>
+
+          <div class="flex items-center justify-center gap-3">
+            <button onclick="togglePomodoroTimer()" id="pomo-play-btn" class="px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-sky-500/25 text-sm">
+              Iniciar
+            </button>
+            <button onclick="resetPomodoroTimer()" class="p-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl font-bold hover:bg-slate-200 transition">
+              <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- VIEW 5: CUENTAS REGRESIVAS -->
     <section id="view-countdowns" class="space-y-6 hidden">
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
         <div>
           <h2 class="text-base font-black text-slate-900 dark:text-white">Cuentas Regresivas Múltiples</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400">Fechas límites para exámenes, entregas y finales</p>
         </div>
-        <button onclick="openCountdownModal()" class="px-3.5 py-2 bg-sky-500 text-white font-bold text-xs rounded-xl">
+        <button onclick="openCountdownModal()" class="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-md">
           + Nueva Cuenta Regresiva
         </button>
       </div>
 
-      <div id="countdowns-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Category Filter Pills Bar -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
+        <button onclick="filterCountdownsCategory('Todos')" id="cd-filter-Todos" class="px-3.5 py-1.5 rounded-full bg-sky-500 text-white shadow-xs">Todos</button>
+        <button onclick="filterCountdownsCategory('Final')" id="cd-filter-Final" class="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Examen Final</button>
+        <button onclick="filterCountdownsCategory('Parcial')" id="cd-filter-Parcial" class="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Parciales</button>
+        <button onclick="filterCountdownsCategory('Entrega')" id="cd-filter-Entrega" class="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Entregas</button>
+        <button onclick="filterCountdownsCategory('Proyecto')" id="cd-filter-Proyecto" class="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Proyectos</button>
+        <button onclick="filterCountdownsCategory('Otro')" id="cd-filter-Otro" class="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Otros</button>
+      </div>
+
+      <div id="countdowns-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <!-- Injected by JS -->
       </div>
     </section>
 
-    <!-- VIEW 6: NOTAS -->
+    <!-- VIEW 6: MATERIAS & REPASO ESPACIADO -->
+    <section id="view-subjects" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div>
+          <h2 class="text-base font-black text-slate-900 dark:text-white">Materias, Temario & Repaso Espaciado</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Organización por unidades, algoritmo Active Recall y plan de estudio</p>
+        </div>
+        <button onclick="openSubjectModal()" class="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-md">
+          + Nueva Materia
+        </button>
+      </div>
+
+      <!-- Subject Tabs Bar -->
+      <div id="subjects-tabs-bar" class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
+        <!-- Injected by JS -->
+      </div>
+
+      <!-- Subject Main Content Area -->
+      <div id="subject-detail-container" class="space-y-6">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 7: NOTAS -->
     <section id="view-notes" class="space-y-6 hidden">
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
         <div>
@@ -518,6 +628,27 @@
           </div>
         </div>
 
+        <!-- Unified Countdown Creation Option -->
+        <div class="p-3 bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-2xl space-y-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="task-create-countdown" onchange="toggleTaskCountdownCategory()" class="w-4 h-4 text-sky-500 rounded border-slate-300">
+            <span class="font-bold text-sky-900 dark:text-sky-300 text-xs">
+              ⭐ ¿Crear también como Cuenta Regresiva destacada?
+            </span>
+          </label>
+
+          <div id="task-countdown-cat-box" class="hidden pt-1 pl-6">
+            <label class="block text-[11px] font-bold text-sky-800 dark:text-sky-300 mb-1">Categoría del Evento:</label>
+            <select id="task-countdown-category" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold text-xs">
+              <option value="Final">Examen Final (Badge Rojo)</option>
+              <option value="Parcial">Parcial (Badge Azul)</option>
+              <option value="Entrega">Entrega (Badge Ámbar)</option>
+              <option value="Proyecto">Proyecto (Badge Púrpura)</option>
+              <option value="Otro">Otro (Badge Gris)</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Reminders Builder -->
         <div class="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-2xl space-y-2">
           <label class="block font-bold text-sky-900 dark:text-sky-300">Alertas por Correo (EmailJS):</label>
@@ -572,6 +703,117 @@
     </div>
   </div>
 
+  <!-- MODAL: GOAL -->
+  <div id="modal-goal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Nuevo Objetivo de Estudio</h3>
+        <button onclick="closeGoalModal()" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="saveGoal(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Título del objetivo:</label>
+          <input type="text" id="goal-title" required placeholder="Ej. Estudiar 2 horas diarias de Fisiología" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Meta Objetiva (Número):</label>
+            <input type="number" id="goal-target" required min="1" value="5" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Unidad / Tipo:</label>
+            <input type="text" id="goal-unit" required placeholder="horas, pomodoros, temas..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Frecuencia:</label>
+          <select id="goal-period" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold">
+            <option value="Diario">Diario</option>
+            <option value="Semanal">Semanal</option>
+            <option value="Mensual">Mensual</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeGoalModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 bg-sky-500 text-white font-bold rounded-xl shadow-md">Guardar Objetivo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SUBJECT -->
+  <div id="modal-subject" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Nueva Materia</h3>
+        <button onclick="closeSubjectModal()" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="saveSubject(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Nombre de la Materia:</label>
+          <input type="text" id="subject-name" required placeholder="Ej. Anatomía Humana" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Color Distintivo:</label>
+          <div class="flex items-center gap-2">
+            <input type="color" id="subject-color" value="#3b82f6" class="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0">
+            <span class="text-slate-500 font-mono text-[11px]">Selecciona el tono de la materia</span>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeSubjectModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 bg-sky-500 text-white font-bold rounded-xl shadow-md">Crear Materia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: BACKUP -->
+  <div id="modal-backup" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-2xl bg-indigo-500/10 text-indigo-500">
+            <i data-lucide="database" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">Copia de Seguridad / Backup</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Exporta e importa todos tus datos en JSON</p>
+          </div>
+        </div>
+        <button onclick="closeBackupModal()" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+          <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <i data-lucide="download" class="w-4 h-4 text-sky-500"></i> Exportar Datos
+          </h4>
+          <p class="text-slate-500">Descarga un archivo JSON con todas tus tareas, notas, materias, notas y configuraciones.</p>
+          <button onclick="exportBackup()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl transition">
+            Descargar Backup JSON
+          </button>
+        </div>
+
+        <div class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+          <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <i data-lucide="upload" class="w-4 h-4 text-indigo-500"></i> Importar Datos
+          </h4>
+          <p class="text-slate-500">Selecciona un archivo JSON de respaldo para restaurar tu información.</p>
+          <input type="file" id="backup-file-input" accept=".json" onchange="importBackup(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600 cursor-pointer">
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button onclick="closeBackupModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- JAVASCRIPT LOGIC -->
   <script>
     // --- STORAGE & INITIAL DATA ---
@@ -581,6 +823,7 @@
       NOTES: 'study_app_notes_v1',
       COUNTDOWNS: 'study_app_countdowns_v1',
       RESOURCES: 'study_app_resources_v1',
+      SUBJECTS: 'study_app_subjects_v1',
       DAILY_STREAKS: 'study_app_daily_streaks_v1',
       THEME: 'study_app_theme_v1',
       EMAIL_CONFIG: 'study_app_emailjs_v1',
@@ -601,29 +844,16 @@
       } catch (e) {}
     }
 
-    // Default Initial Data
-    let tasks = load(STORAGE_KEYS.TASKS, [
-      { id: '1', title: 'Entrega de TP de Física II', date: new Date().toISOString().split('T')[0], time: '18:00', priority: 'Alta', tag: 'Entrega', completed: false, createdAt: new Date().toISOString() },
-      { id: '2', title: 'Repasar clase de Estructura de Datos', date: new Date().toISOString().split('T')[0], time: '20:00', priority: 'Media', tag: 'Repaso', completed: true, createdAt: new Date().toISOString() },
-    ]);
-
-    let goals = load(STORAGE_KEYS.GOALS, [
-      { id: '1', title: 'Completar 2 bloques Pomodoro', type: 'Diario', targetValue: 2, currentValue: 1, completed: false, createdAt: new Date().toISOString() },
-      { id: '2', title: 'Resolver 10 ejercicios de Cálculo', type: 'Diario', targetValue: 10, currentValue: 7, completed: false, createdAt: new Date().toISOString() },
-    ]);
-
-    let notes = load(STORAGE_KEYS.NOTES, [
-      { id: '1', title: 'Fórmulas Integrales', content: '∫ x^n dx = (x^(n+1))/(n+1) + C', isPinned: true, color: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' }
-    ]);
-
-    let countdowns = load(STORAGE_KEYS.COUNTDOWNS, [
-      { id: '1', title: 'Examen Final de Física', date: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16), category: 'Final', isFeatured: true }
-    ]);
-
+    // Clean Slate - Default Initial Data is Empty
+    let tasks = load(STORAGE_KEYS.TASKS, []);
+    let goals = load(STORAGE_KEYS.GOALS, []);
+    let notes = load(STORAGE_KEYS.NOTES, []);
+    let countdowns = load(STORAGE_KEYS.COUNTDOWNS, []);
+    let subjects = load(STORAGE_KEYS.SUBJECTS, []);
     let resources = load(STORAGE_KEYS.RESOURCES, []);
     let streaks = load(STORAGE_KEYS.DAILY_STREAKS, []);
     let emailConfig = load(STORAGE_KEYS.EMAIL_CONFIG, {
-      publicKey: '', serviceId: '', templateId: '', recipientEmail: 'dimasboschdodero@gmail.com'
+      publicKey: '', serviceId: '', templateId: '', recipientEmail: ''
     });
     let theme = load(STORAGE_KEYS.THEME, 'dark');
 
@@ -673,13 +903,17 @@
 
     // --- TAB SWITCHER ---
     function switchTab(tabId) {
-      ['calendar', 'tasks', 'goals', 'pomodoro', 'countdowns', 'notes'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add('hidden');
-        document.getElementById(`tab-${t}`).className = 'px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+      ['calendar', 'tasks', 'goals', 'pomodoro', 'countdowns', 'subjects', 'notes'].forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const tabEl = document.getElementById(`tab-${t}`);
+        if (viewEl) viewEl.classList.add('hidden');
+        if (tabEl) tabEl.className = 'px-3.5 py-2 rounded-xl transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
       });
 
-      document.getElementById(`view-${tabId}`).classList.remove('hidden');
-      document.getElementById(`tab-${tabId}`).className = 'px-3.5 py-2 rounded-xl transition flex items-center gap-2 bg-sky-500 text-white shadow-md shadow-sky-500/20 font-bold';
+      const activeView = document.getElementById(`view-${tabId}`);
+      const activeTab = document.getElementById(`tab-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeTab) activeTab.className = 'px-3.5 py-2 rounded-xl transition flex items-center gap-2 bg-sky-500 text-white shadow-md shadow-sky-500/20 font-bold';
       renderAll();
     }
 
@@ -709,6 +943,7 @@
       renderTasks();
       renderGoals();
       renderCountdowns();
+      renderSubjects();
       renderNotes();
       renderStreaks();
       lucide.createIcons();
@@ -948,6 +1183,13 @@
       showToast(`Recordatorios configurados: ${currentTaskReminders.length}`);
     }
 
+    function toggleTaskCountdownCategory() {
+      const isChecked = document.getElementById('task-create-countdown').checked;
+      const box = document.getElementById('task-countdown-cat-box');
+      if (isChecked) box.classList.remove('hidden');
+      else box.classList.add('hidden');
+    }
+
     function saveTask(e) {
       e.preventDefault();
       const title = document.getElementById('task-title').value.trim();
@@ -956,6 +1198,8 @@
       const time = document.getElementById('task-time').value;
       const priority = document.getElementById('task-priority').value;
       const tag = document.getElementById('task-tag').value;
+      const createCountdown = document.getElementById('task-create-countdown').checked;
+      const countdownCat = document.getElementById('task-countdown-category').value;
 
       const newTask = {
         id: 'task-' + Date.now(),
@@ -972,90 +1216,78 @@
 
       tasks.push(newTask);
       save(STORAGE_KEYS.TASKS, tasks);
+
+      if (createCountdown) {
+        const timeStr = time ? time : '09:00';
+        const eventDateTime = `${date}T${timeStr}`;
+        countdowns.forEach(c => c.isFeatured = false);
+        countdowns.unshift({
+          id: 'cd-' + Date.now(),
+          title,
+          date: eventDateTime,
+          category: countdownCat || 'Final',
+          isFeatured: true
+        });
+        save(STORAGE_KEYS.COUNTDOWNS, countdowns);
+      }
+
       closeTaskModal();
       renderAll();
-      showToast('Tarea guardada exitosamente');
+      showToast('Tarea guardada exitosamente' + (createCountdown ? ' y añadida como Cuenta Regresiva Destacada!' : ''));
     }
 
-    // --- GOALS LOGIC ---
-    function renderGoals() {
-      const container = document.getElementById('goals-list-container');
-      container.innerHTML = '';
-
-      goals.forEach(g => {
-        const pct = Math.min(100, Math.round((g.currentValue / g.targetValue) * 100));
-
-        container.innerHTML += `
-          <div class="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <h4 class="text-xs font-bold text-slate-900 dark:text-white">${g.title}</h4>
-              <span class="text-xs font-black text-sky-500">${g.currentValue} / ${g.targetValue}</span>
-            </div>
-            <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div class="bg-sky-500 h-full transition-all" style="width: ${pct}%"></div>
-            </div>
-            <div class="flex justify-end gap-2">
-              <button onclick="updateGoal('${g.id}', 1)" class="px-3 py-1 bg-sky-50 dark:bg-sky-950/60 text-sky-600 font-bold text-xs rounded-xl">+1 Progreso</button>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    function updateGoal(id, delta) {
-      goals = goals.map(g => {
-        if (g.id === id) {
-          const newVal = Math.max(0, g.currentValue + delta);
-          if (newVal >= g.targetValue && g.currentValue < g.targetValue) {
-            confetti();
-          }
-          return { ...g, currentValue: newVal, completed: newVal >= g.targetValue };
-        }
-        return g;
-      });
-      save(STORAGE_KEYS.GOALS, goals);
-      renderGoals();
-    }
-
-    function openGoalModal() {
-      const title = prompt('Título del nuevo objetivo:');
-      if (!title) return;
-      goals.push({
-        id: 'goal-' + Date.now(),
-        title,
-        type: 'Diario',
-        targetValue: 1,
-        currentValue: 0,
-        completed: false,
-        createdAt: new Date().toISOString()
-      });
-      save(STORAGE_KEYS.GOALS, goals);
-      renderGoals();
-    }
-
-    // --- STREAKS LOGIC ---
-    function renderStreaks() {
-      const grid = document.getElementById('streak-grid');
-      grid.innerHTML = '';
-      for (let i = 0; i < 30; i++) {
-        const active = i > 20;
-        grid.innerHTML += `<div class="h-5 rounded-md ${active ? 'bg-amber-400' : 'bg-slate-200 dark:bg-slate-700'}"></div>`;
-      }
-      document.getElementById('streak-count-display').innerText = `5 Días 🔥`;
-    }
-
-    // --- POMODORO LOGIC ---
-    let pomoTime = 1500;
+    // --- STUDY TIMER LOGIC ---
+    let pomoWorkMins = 25;
+    let pomoShortMins = 5;
+    let pomoLongMins = 15;
+    let pomoMode = 'pomodoro'; // 'pomodoro' | 'short' | 'long'
+    let pomoTime = 25 * 60;
     let pomoTimer = null;
+
+    function toggleCustomControls() {
+      const el = document.getElementById('pomo-custom-inputs');
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function applyPomoPreset(w, s, l) {
+      pomoWorkMins = w;
+      pomoShortMins = s;
+      pomoLongMins = l;
+      document.getElementById('pomo-work-input').value = w;
+      document.getElementById('pomo-short-input').value = s;
+      document.getElementById('pomo-long-input').value = l;
+      setPomodoroMode(pomoMode);
+      showToast(`Tiempos actualizados: ${w}m sesión / ${s}m descanso`);
+    }
+
+    function saveCustomPomoTimes() {
+      const w = Math.max(1, Math.min(180, Number(document.getElementById('pomo-work-input').value) || 25));
+      const s = Math.max(1, Math.min(60, Number(document.getElementById('pomo-short-input').value) || 5));
+      const l = Math.max(1, Math.min(60, Number(document.getElementById('pomo-long-input').value) || 15));
+      applyPomoPreset(w, s, l);
+    }
 
     function setPomodoroMode(mode) {
       clearInterval(pomoTimer);
       pomoTimer = null;
+      pomoMode = mode;
       document.getElementById('pomo-play-btn').innerText = 'Iniciar';
 
-      if (mode === 'pomodoro') pomoTime = 1500;
-      else if (mode === 'short') pomoTime = 300;
-      else pomoTime = 900;
+      if (mode === 'pomodoro') pomoTime = pomoWorkMins * 60;
+      else if (mode === 'short') pomoTime = pomoShortMins * 60;
+      else pomoTime = pomoLongMins * 60;
+
+      // Update tab buttons style
+      ['pomodoro', 'short', 'long'].forEach(m => {
+        const btn = document.getElementById(`pomo-mode-${m}`);
+        if (btn) {
+          if (m === mode) {
+            btn.className = 'flex-1 py-2 rounded-xl transition bg-sky-500 text-white font-bold shadow-xs';
+          } else {
+            btn.className = 'flex-1 py-2 rounded-xl transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+          }
+        }
+      });
 
       updatePomoDisplay();
     }
@@ -1079,7 +1311,7 @@
           } else {
             clearInterval(pomoTimer);
             pomoTimer = null;
-            showToast('¡Pomodoro terminado!');
+            showToast('¡Tiempo de sesión finalizado!');
             confetti();
           }
         }, 1000);
@@ -1088,33 +1320,122 @@
     }
 
     function resetPomodoroTimer() {
-      setPomodoroMode('pomodoro');
+      setPomodoroMode(pomoMode);
     }
 
     // --- COUNTDOWNS LOGIC ---
+    let activeCountdownCategory = 'Todos';
+
+    function filterCountdownsCategory(cat) {
+      activeCountdownCategory = cat;
+      ['Todos', 'Final', 'Parcial', 'Entrega', 'Proyecto', 'Otro'].forEach(c => {
+        const btn = document.getElementById(`cd-filter-${c}`);
+        if (btn) {
+          if (c === cat) {
+            btn.className = 'px-3.5 py-1.5 rounded-full bg-sky-500 text-white shadow-xs font-bold';
+          } else {
+            btn.className = 'px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200';
+          }
+        }
+      });
+      renderCountdowns();
+    }
+
     function renderCountdowns() {
       const grid = document.getElementById('countdowns-grid');
       grid.innerHTML = '';
 
-      countdowns.forEach(c => {
+      const filtered = activeCountdownCategory === 'Todos'
+        ? countdowns
+        : countdowns.filter(c => c.category === activeCountdownCategory);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">No hay cuentas regresivas en esta categoría.</div>`;
+        return;
+      }
+
+      filtered.forEach(c => {
         const target = new Date(c.date).getTime();
         const diff = Math.max(0, target - Date.now());
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        let badgeBg = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+        if (c.category === 'Final') badgeBg = 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300';
+        else if (c.category === 'Parcial') badgeBg = 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300';
+        else if (c.category === 'Entrega') badgeBg = 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300';
+        else if (c.category === 'Proyecto') badgeBg = 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300';
+
+        let borderClass = c.isFeatured
+          ? 'border-2 border-sky-500 shadow-md shadow-sky-500/10'
+          : 'border border-slate-200 dark:border-slate-800 shadow-sm';
 
         grid.innerHTML += `
-          <div class="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <div class="bg-white dark:bg-slate-900 rounded-3xl ${borderClass} p-5 space-y-4 transition">
+            <!-- Header Badge & Icons -->
             <div class="flex items-center justify-between">
-              <h4 class="text-xs font-black text-slate-900 dark:text-white">${c.title}</h4>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">${c.category}</span>
+              <span class="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full ${badgeBg}">
+                ${c.category || 'EVENTO'}
+              </span>
+
+              <div class="flex items-center gap-1.5 text-slate-400">
+                <button onclick="sendManualEmail('${c.title}', '${c.date}')" class="p-1.5 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-950/60 rounded-xl transition" title="Notificar por Correo">
+                  <i data-lucide="mail" class="w-4 h-4"></i>
+                </button>
+                <button onclick="toggleFeaturedCountdown('${c.id}')" class="p-1.5 ${c.isFeatured ? 'text-amber-400 fill-amber-400' : 'hover:text-amber-400'} rounded-xl transition" title="Destacar en portada">
+                  <i data-lucide="star" class="w-4 h-4 ${c.isFeatured ? 'fill-amber-400 text-amber-400' : ''}"></i>
+                </button>
+                <button onclick="deleteCountdown('${c.id}')" class="p-1.5 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-xl transition" title="Eliminar cuenta regresiva">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
             </div>
-            <div class="text-2xl font-black text-sky-500">${days}d ${hours}h</div>
-            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button onclick="sendManualEmail('${c.title}', '${c.date}')" class="px-2.5 py-1 bg-sky-50 dark:bg-sky-950 text-sky-600 text-xs font-bold rounded-xl">Mail</button>
+
+            <!-- Event Title -->
+            <h4 class="text-sm font-black text-slate-900 dark:text-white line-clamp-2">
+              ${c.title}
+            </h4>
+
+            <!-- 4 Boxes breakdown -->
+            <div class="grid grid-cols-4 gap-1.5 text-center">
+              <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/60">
+                <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">${days}</div>
+                <div class="text-[9px] uppercase font-extrabold text-slate-400 tracking-wider">Días</div>
+              </div>
+              <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/60">
+                <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">${hours}</div>
+                <div class="text-[9px] uppercase font-extrabold text-slate-400 tracking-wider">Horas</div>
+              </div>
+              <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/60">
+                <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">${mins}</div>
+                <div class="text-[9px] uppercase font-extrabold text-slate-400 tracking-wider">Min</div>
+              </div>
+              <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/60">
+                <div class="text-base sm:text-lg font-black text-sky-500 font-mono">${secs}</div>
+                <div class="text-[9px] uppercase font-extrabold text-slate-400 tracking-wider">Seg</div>
+              </div>
             </div>
           </div>
         `;
       });
+      lucide.createIcons();
+    }
+
+    function toggleFeaturedCountdown(id) {
+      countdowns = countdowns.map(c => ({
+        ...c,
+        isFeatured: c.id === id ? !c.isFeatured : false
+      }));
+      save(STORAGE_KEYS.COUNTDOWNS, countdowns);
+      renderCountdowns();
+    }
+
+    function deleteCountdown(id) {
+      countdowns = countdowns.filter(c => c.id !== id);
+      save(STORAGE_KEYS.COUNTDOWNS, countdowns);
+      renderCountdowns();
     }
 
     function openCountdownModal() {
@@ -1244,8 +1565,399 @@
       });
     }
 
+    // --- GOALS LOGIC ---
+    function renderGoals() {
+      const container = document.getElementById('goals-list-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (goals.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">No hay objetivos registrados. Crea uno nuevo arriba.</div>`;
+        return;
+      }
+
+      goals.forEach(g => {
+        const percent = Math.min(100, Math.round((g.current / g.target) * 100));
+        container.innerHTML += `
+          <div class="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-sky-500 bg-sky-50 dark:bg-sky-950 px-2 py-0.5 rounded-full">${g.period}</span>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white mt-1">${g.title}</h4>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="updateGoalProgress('${g.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 text-xs flex items-center justify-center">-</button>
+                <span class="text-xs font-black text-slate-900 dark:text-white px-2 font-mono">${g.current} / ${g.target} ${g.unit}</span>
+                <button onclick="updateGoalProgress('${g.id}', 1)" class="w-7 h-7 rounded-lg bg-sky-500 text-white font-bold hover:bg-sky-600 text-xs flex items-center justify-center">+</button>
+                <button onclick="deleteGoal('${g.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-sky-500 to-indigo-600 h-full transition-all duration-300" style="width: ${percent}%"></div>
+            </div>
+          </div>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    function openGoalModal() {
+      document.getElementById('modal-goal').classList.remove('hidden');
+    }
+    function closeGoalModal() {
+      document.getElementById('modal-goal').classList.add('hidden');
+    }
+    function saveGoal(e) {
+      e.preventDefault();
+      const title = document.getElementById('goal-title').value.trim();
+      const target = Number(document.getElementById('goal-target').value) || 1;
+      const unit = document.getElementById('goal-unit').value.trim();
+      const period = document.getElementById('goal-period').value;
+
+      goals.push({ id: 'goal-' + Date.now(), title, current: 0, target, unit, period });
+      save(STORAGE_KEYS.GOALS, goals);
+      closeGoalModal();
+      renderGoals();
+    }
+    function updateGoalProgress(id, delta) {
+      goals = goals.map(g => g.id === id ? { ...g, current: Math.max(0, g.current + delta) } : g);
+      save(STORAGE_KEYS.GOALS, goals);
+      renderGoals();
+    }
+    function deleteGoal(id) {
+      goals = goals.filter(g => g.id !== id);
+      save(STORAGE_KEYS.GOALS, goals);
+      renderGoals();
+    }
+
+    // --- STREAKS LOGIC ---
+    function renderStreaks() {
+      const display = document.getElementById('streak-count-display');
+      const grid = document.getElementById('streak-grid');
+      if (!display || !grid) return;
+
+      const streakCount = streaks.filter(s => s.completed).length;
+      display.innerText = `${streakCount} Días 🔥`;
+
+      grid.innerHTML = '';
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().split('T')[0];
+        const active = streaks.some(s => s.date === iso && s.completed);
+
+        grid.innerHTML += `<div class="w-full aspect-square rounded-md ${active ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700/50'}" title="${iso}"></div>`;
+      }
+    }
+
+    // --- SUBJECTS LOGIC ---
+    let selectedSubjectId = subjects[0] ? subjects[0].id : null;
+
+    function renderSubjects() {
+      const tabsBar = document.getElementById('subjects-tabs-bar');
+      const detailContainer = document.getElementById('subject-detail-container');
+      if (!tabsBar || !detailContainer) return;
+
+      if (subjects.length === 0) {
+        tabsBar.innerHTML = '';
+        detailContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">No hay materias registradas. Haz clic en '+ Nueva Materia' para comenzar.</div>`;
+        return;
+      }
+
+      if (!selectedSubjectId || !subjects.some(s => s.id === selectedSubjectId)) {
+        selectedSubjectId = subjects[0].id;
+      }
+
+      // Render Subject Tabs
+      tabsBar.innerHTML = '';
+      subjects.forEach(s => {
+        const isActive = s.id === selectedSubjectId;
+        tabsBar.innerHTML += `
+          <button onclick="selectSubject('${s.id}')" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 ${isActive ? 'bg-sky-500 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'}">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${s.color || '#3b82f6'}"></span>
+            <span>${s.name}</span>
+          </button>
+        `;
+      });
+
+      // Active Subject details
+      const activeSubject = subjects.find(s => s.id === selectedSubjectId);
+      if (!activeSubject) return;
+
+      // Stats calculation
+      let totalSubtopics = 0;
+      let greenCount = 0;
+      let yellowCount = 0;
+      let redCount = 0;
+      let greyCount = 0;
+
+      (activeSubject.topics || []).forEach(t => {
+        (t.subtopics || []).forEach(sub => {
+          totalSubtopics++;
+          if (sub.activeRecallLevel === 'GREEN') greenCount++;
+          else if (sub.activeRecallLevel === 'YELLOW') yellowCount++;
+          else if (sub.activeRecallLevel === 'RED') redCount++;
+          else greyCount++;
+        });
+      });
+
+      const pendingSubtopics = redCount + yellowCount + greyCount;
+
+      // Render active subject view
+      detailContainer.innerHTML = `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
+          <!-- Subject Header -->
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+              <span class="w-4 h-4 rounded-full" style="background-color: ${activeSubject.color || '#3b82f6'}"></span>
+              <h3 class="text-xl font-black text-slate-900 dark:text-white">${activeSubject.name}</h3>
+            </div>
+            <button onclick="deleteSubject('${activeSubject.id}')" class="px-3 py-1.5 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition flex items-center gap-1.5">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              <span>Eliminar Materia</span>
+            </button>
+          </div>
+
+          <!-- Active Recall Progress Breakdown -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div class="text-[10px] uppercase font-extrabold text-slate-400">Dominados (Verde)</div>
+              <div class="text-lg font-black text-emerald-500 font-mono">${greenCount} / ${totalSubtopics}</div>
+            </div>
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div class="text-[10px] uppercase font-extrabold text-slate-400">En Duda (Amarillo)</div>
+              <div class="text-lg font-black text-amber-500 font-mono">${yellowCount}</div>
+            </div>
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div class="text-[10px] uppercase font-extrabold text-slate-400">Dificultad (Rojo)</div>
+              <div class="text-lg font-black text-rose-500 font-mono">${redCount}</div>
+            </div>
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div class="text-[10px] uppercase font-extrabold text-slate-400">Pendientes</div>
+              <div class="text-lg font-black text-slate-400 font-mono">${greyCount}</div>
+            </div>
+          </div>
+
+          <!-- Topics & Subtopics List -->
+          <div class="space-y-4 pt-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-black uppercase text-slate-400 tracking-wider">Unidades y Temario</h4>
+              <button onclick="addTopicPrompt('${activeSubject.id}')" class="px-3 py-1.5 bg-sky-500 text-white font-bold text-xs rounded-xl">+ Añadir Unidad/Tema</button>
+            </div>
+
+            <div id="topics-container" class="space-y-4">
+              ${(activeSubject.topics || []).map(t => `
+                <div class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h5 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <i data-lucide="layers" class="w-4 h-4 text-sky-500"></i>
+                      <span>${t.title}</span>
+                    </h5>
+                    <div class="flex items-center gap-2">
+                      <button onclick="addSubtopicPrompt('${activeSubject.id}', '${t.id}')" class="px-2.5 py-1 bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 rounded-lg text-[11px] font-bold">+ Subtema</button>
+                      <button onclick="deleteTopic('${activeSubject.id}', '${t.id}')" class="p-1 text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                  </div>
+
+                  <div class="space-y-1.5 pl-3 border-l-2 border-slate-200 dark:border-slate-700">
+                    ${(t.subtopics || []).map(sub => {
+                      let levelColor = 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
+                      let levelLabel = 'Gris (Sin estudiar)';
+                      if (sub.activeRecallLevel === 'GREEN') { levelColor = 'bg-emerald-500 text-white'; levelLabel = 'Verde (Dominado)'; }
+                      else if (sub.activeRecallLevel === 'YELLOW') { levelColor = 'bg-amber-500 text-white'; levelLabel = 'Amarillo (Dudas)'; }
+                      else if (sub.activeRecallLevel === 'RED') { levelColor = 'bg-rose-500 text-white'; levelLabel = 'Rojo (Dificultad)'; }
+
+                      return `
+                        <div class="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                          <span class="font-medium text-slate-800 dark:text-slate-200">${sub.title}</span>
+                          <div class="flex items-center gap-2">
+                            <button onclick="cycleActiveRecallLevel('${activeSubject.id}', '${t.id}', '${sub.id}')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${levelColor} transition" title="Haz clic para cambiar nivel de recall">
+                              ${levelLabel}
+                            </button>
+                            <button onclick="deleteSubtopic('${activeSubject.id}', '${t.id}', '${sub.id}')" class="p-1 text-slate-400 hover:text-rose-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function selectSubject(id) {
+      selectedSubjectId = id;
+      renderSubjects();
+    }
+    function openSubjectModal() {
+      document.getElementById('modal-subject').classList.remove('hidden');
+    }
+    function closeSubjectModal() {
+      document.getElementById('modal-subject').classList.add('hidden');
+    }
+    function saveSubject(e) {
+      e.preventDefault();
+      const name = document.getElementById('subject-name').value.trim();
+      const color = document.getElementById('subject-color').value;
+
+      const newSubject = { id: 'subj-' + Date.now(), name, color, topics: [], grades: [] };
+      subjects.push(newSubject);
+      selectedSubjectId = newSubject.id;
+      save(STORAGE_KEYS.SUBJECTS, subjects);
+      closeSubjectModal();
+      renderSubjects();
+    }
+    function deleteSubject(id) {
+      if (confirm('¿Eliminar esta materia completa con sus unidades y notas?')) {
+        subjects = subjects.filter(s => s.id !== id);
+        save(STORAGE_KEYS.SUBJECTS, subjects);
+        renderSubjects();
+      }
+    }
+    function addTopicPrompt(subjectId) {
+      const title = prompt('Título de la nueva Unidad / Tema:');
+      if (!title) return;
+      subjects = subjects.map(s => {
+        if (s.id === subjectId) {
+          return { ...s, topics: [...(s.topics || []), { id: 'topic-' + Date.now(), title, subtopics: [] }] };
+        }
+        return s;
+      });
+      save(STORAGE_KEYS.SUBJECTS, subjects);
+      renderSubjects();
+    }
+    function deleteTopic(subjectId, topicId) {
+      if (confirm('¿Eliminar esta unidad y sus subtemas?')) {
+        subjects = subjects.map(s => {
+          if (s.id === subjectId) {
+            return { ...s, topics: s.topics.filter(t => t.id !== topicId) };
+          }
+          return s;
+        });
+        save(STORAGE_KEYS.SUBJECTS, subjects);
+        renderSubjects();
+      }
+    }
+    function addSubtopicPrompt(subjectId, topicId) {
+      const title = prompt('Título del subtema:');
+      if (!title) return;
+      subjects = subjects.map(s => {
+        if (s.id === subjectId) {
+          return {
+            ...s,
+            topics: s.topics.map(t => {
+              if (t.id === topicId) {
+                return { ...t, subtopics: [...(t.subtopics || []), { id: 'sub-' + Date.now(), title, activeRecallLevel: 'GREY' }] };
+              }
+              return t;
+            })
+          };
+        }
+        return s;
+      });
+      save(STORAGE_KEYS.SUBJECTS, subjects);
+      renderSubjects();
+    }
+    function deleteSubtopic(subjectId, topicId, subtopicId) {
+      if (confirm('¿Eliminar este subtema?')) {
+        subjects = subjects.map(s => {
+          if (s.id === subjectId) {
+            return {
+              ...s,
+              topics: s.topics.map(t => {
+                if (t.id === topicId) {
+                  return { ...t, subtopics: t.subtopics.filter(sub => sub.id !== subtopicId) };
+                }
+                return t;
+              })
+            };
+          }
+          return s;
+        });
+        save(STORAGE_KEYS.SUBJECTS, subjects);
+        renderSubjects();
+      }
+    }
+    function cycleActiveRecallLevel(subjectId, topicId, subtopicId) {
+      const levels = ['GREY', 'RED', 'YELLOW', 'GREEN'];
+      subjects = subjects.map(s => {
+        if (s.id === subjectId) {
+          return {
+            ...s,
+            topics: s.topics.map(t => {
+              if (t.id === topicId) {
+                return {
+                  ...t,
+                  subtopics: t.subtopics.map(sub => {
+                    if (sub.id === subtopicId) {
+                      const nextIdx = (levels.indexOf(sub.activeRecallLevel || 'GREY') + 1) % levels.length;
+                      return { ...sub, activeRecallLevel: levels[nextIdx] };
+                    }
+                    return sub;
+                  })
+                };
+              }
+              return t;
+            })
+          };
+        }
+        return s;
+      });
+      save(STORAGE_KEYS.SUBJECTS, subjects);
+      renderSubjects();
+    }
+
+    // --- BACKUP / RESTORE LOGIC ---
+    function openBackupModal() {
+      document.getElementById('modal-backup').classList.remove('hidden');
+    }
+    function closeBackupModal() {
+      document.getElementById('modal-backup').classList.add('hidden');
+    }
+    function exportBackup() {
+      const backupObj = {
+        tasks, goals, notes, countdowns, resources, subjects, streaks, emailConfig, theme,
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_estudio_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Backup JSON descargado con éxito');
+    }
+    function importBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.tasks) { tasks = parsed.tasks; save(STORAGE_KEYS.TASKS, tasks); }
+          if (parsed.goals) { goals = parsed.goals; save(STORAGE_KEYS.GOALS, goals); }
+          if (parsed.notes) { notes = parsed.notes; save(STORAGE_KEYS.NOTES, notes); }
+          if (parsed.countdowns) { countdowns = parsed.countdowns; save(STORAGE_KEYS.COUNTDOWNS, countdowns); }
+          if (parsed.subjects) { subjects = parsed.subjects; save(STORAGE_KEYS.SUBJECTS, subjects); }
+          if (parsed.resources) { resources = parsed.resources; save(STORAGE_KEYS.RESOURCES, resources); }
+          closeBackupModal();
+          renderAll();
+          showToast('Backup restaurado exitosamente');
+        } catch (err) {
+          showToast('Error al importar archivo de backup JSON', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
     function resetData() {
-      if (confirm('¿Reiniciar todos los datos a la muestra inicial?')) {
+      if (confirm('¿Reiniciar todos los datos a cero?')) {
         localStorage.clear();
         location.reload();
       }
