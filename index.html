@@ -5,16 +5,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi Gestor de Estudio & Calendario Personal</title>
   
-  <!-- Early execution interceptor for Cron-Job / Webhook -->
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- EmailJS Browser SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+  <!-- Strict Cron-Job Interceptor -->
   <script>
     if (window.location.search.includes('check_mails=true')) {
-      if (document.body) {
-        document.body.innerHTML = 'OK';
-      } else {
-        document.addEventListener('DOMContentLoaded', function() {
-          document.body.innerHTML = 'OK';
-        });
+      // 1. Clear document immediately so no HTML or heavy DOM is served
+      document.write('OK');
+      if (typeof window.stop === 'function') {
+        window.stop();
       }
+
+      // 2. Execute Firebase and EmailJS background check only
+      (async function runSilentCron() {
+        const firebaseConfig = {
+          apiKey: "AIzaSyCEw9ohP9zuUHwylOFb6Xaw9Hw86AIL8jU",
+          authDomain: "calendario-dimas.firebaseapp.com",
+          projectId: "calendario-dimas",
+          databaseURL: "https://calendario-dimas-default-rtdb.firebaseio.com",
+          storageBucket: "calendario-dimas.firebasestorage.app",
+          messagingSenderId: "409062247730",
+          appId: "1:409062247730:web:a8566f61372d28b6fbdb2b"
+        };
+
+        try {
+          if (typeof firebase !== 'undefined') {
+            if (!firebase.apps.length) {
+              firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.database();
+            const snapshot = await db.ref('alertas_pendientes').once('value');
+            const data = snapshot.val();
+            if (data) {
+              const nowMs = Date.now();
+              const promises = [];
+
+              Object.keys(data).forEach(key => {
+                const alert = data[key];
+                if (!alert) return;
+
+                let alertTimeMs = new Date(alert.fecha_hora_alerta).getTime();
+                if (isNaN(alertTimeMs) && typeof alert.fecha_hora_alerta === 'string') {
+                  alertTimeMs = new Date(alert.fecha_hora_alerta.replace(' ', 'T')).getTime();
+                }
+
+                const isDue = alertTimeMs <= nowMs;
+                const isPending = alert.enviado === false || alert.enviado === 'false' || !alert.enviado;
+
+                if (isPending && isDue) {
+                  const serviceId = alert.service_id;
+                  const templateId = alert.template_id;
+                  const publicKey = alert.public_key;
+                  const recipient = alert.email_destinatario;
+
+                  if (serviceId && publicKey && recipient && typeof emailjs !== 'undefined') {
+                    const p = emailjs.send(
+                      serviceId,
+                      templateId,
+                      {
+                        tarea_titulo: alert.titulo || 'Alerta de Estudio',
+                        tarea_fecha: alert.fecha_hora_alerta,
+                        to_email: recipient,
+                        recipient_email: recipient
+                      },
+                      publicKey
+                    ).then(() => {
+                      return db.ref(`alertas_pendientes/${key}`).update({
+                        enviado: true,
+                        fecha_envio: new Date().toISOString()
+                      });
+                    }).catch(err => {
+                      return db.ref(`alertas_pendientes/${key}`).update({
+                        enviado: true,
+                        error: err ? (err.text || err.message) : 'Error de envío'
+                      });
+                    });
+                    promises.push(p);
+                  } else {
+                    promises.push(db.ref(`alertas_pendientes/${key}`).update({
+                      enviado: true,
+                      error: 'Sin credenciales'
+                    }));
+                  }
+                }
+              });
+
+              await Promise.all(promises);
+            }
+          }
+        } catch (err) {
+          console.error('Error procesando cron silent mode:', err);
+        }
+      })();
     }
   </script>
 
@@ -40,13 +127,6 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Firebase SDKs (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <!-- EmailJS Browser SDK -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
   <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
