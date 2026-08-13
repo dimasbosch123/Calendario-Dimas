@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi Gestor de Estudio & Calendario Personal</title>
   
+  <!-- Early execution interceptor for Cron-Job / Webhook -->
+  <script>
+    if (window.location.search.includes('check_mails=true')) {
+      if (document.body) {
+        document.body.innerHTML = 'OK';
+      } else {
+        document.addEventListener('DOMContentLoaded', function() {
+          document.body.innerHTML = 'OK';
+        });
+      }
+    }
+  </script>
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
